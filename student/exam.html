@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Assessment Console</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 min-h-screen text-slate-100 flex flex-col font-sans select-none antialiased">
+
+    <header class="bg-slate-900 border-b border-slate-800 h-16 sticky top-0 z-50 px-6 flex items-center justify-between">
+        <div>
+            <h1 id="examHeadTitle" class="text-sm font-black text-white uppercase tracking-wider">Loading Console...</h1>
+            <p id="questionTracker" class="text-xs text-slate-400">Processing structural blocks...</p>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="bg-red-500/10 border border-red-500/20 px-3 py-1 rounded-lg text-xs font-mono text-red-400 flex items-center space-x-1">
+                <span>Security Flags:</span>
+                <span id="flagCounter" class="font-bold">0</span>
+            </div>
+            <div class="bg-indigo-600 px-4 py-1.5 rounded-xl font-mono text-sm text-white font-bold tracking-widest">
+                <span id="timerClock">60</span>s
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-3xl w-full mx-auto px-4 py-12 flex flex-col justify-center">
+        <div class="bg-slate-800 border border-slate-700/60 rounded-2xl p-8 shadow-2xl space-y-6">
+            <div class="space-y-2">
+                <span class="text-xs text-indigo-400 font-bold uppercase tracking-wider">Active Evaluation Objective</span>
+                <h2 id="questionText" class="text-base md:text-lg font-medium text-white leading-relaxed">Syncing configuration keys...</h2>
+            </div>
+            
+            <div id="optionsContainer" class="grid grid-cols-1 gap-3 pt-2"></div>
+
+            <div class="flex justify-end pt-4 border-t border-slate-700/40">
+                <button onclick="advanceQuestion()" id="nextBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs px-6 py-2.5 rounded-xl shadow-md transition-all">Next Question &rarr;</button>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAMjISd6EQ574d8Qix4pXvVDriWurPpX-E",
+            authDomain: "school-exam-portal.firebaseapp.com",
+            projectId: "school-exam-portal",
+            storageBucket: "school-exam-portal.firebasestorage.app",
+            messagingSenderId: "240212257757",
+            appId: "1:240212257757:web:fdb7ff48d25b85a1dd2434",
+            measurementId: "G-7VBY7P1JPH"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const student = JSON.parse(localStorage.getItem('activeStudent'));
+        const examId = localStorage.getItem('activeExamId');
+        if (!student || !examId) window.location.href = '../index.html';
+
+        let examData = null;
+        let currentIdx = 0;
+        let runningScore = 0;
+        let securityViolations = 0;
+        let countdownInterval = null;
+        let timeRemaining = 60;
+        let selectedOptionIndex = null;
+
+        // Active Integrity Monitors
+        window.addEventListener('blur', () => {
+            securityViolations++;
+            document.getElementById('flagCounter').innerText = securityViolations;
+            alert("INTEGRITY SECURITY BREACH WARNING: Navigating away from this exam records security flags to the master results console.");
+        });
+        document.addEventListener('contextmenu', e => e.preventDefault());
+
+        async function loadExamPayload() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "portal_exams"));
+                querySnapshot.forEach(d => {
+                    if(d.data().id === examId) examData = d.data();
+                });
+                
+                if (!examData) { window.location.href = 'dashboard.html'; return; }
+                document.getElementById('examHeadTitle').innerText = examData.title;
+                displayQuestionItem();
+            } catch (err) { alert("Error connecting to terminal."); }
+        }
+
+        function displayQuestionItem() {
+            clearInterval(countdownInterval);
+            timeRemaining = 60;
+            selectedOptionIndex = null;
+            document.getElementById('timerClock').innerText = timeRemaining;
+
+            const q = examData.questions[currentIdx];
+            document.getElementById('questionTracker').innerText = `Item Cluster Index ${currentIdx + 1} of ${examData.questions.length}`;
+            document.getElementById('questionText').innerText = q.text;
+
+            const optContainer = document.getElementById('optionsContainer');
+            optContainer.innerHTML = '';
+
+            const labels = ['A', 'B', 'C', 'D'];
+            q.options.forEach((opt, idx) => {
+                optContainer.innerHTML += `
+                    <button id="optBtn_${idx}" onclick="selectOption('${labels[idx]}', ${idx})" class="w-full text-left p-4 rounded-xl border border-slate-700 bg-slate-800/40 hover:bg-slate-700/40 hover:border-slate-600 transition-all text-xs flex items-center space-x-3 group">
+                        <span class="w-5 h-5 flex items-center justify-center bg-slate-700 text-slate-300 rounded-md text-[10px] font-bold font-mono group-hover:bg-indigo-600 group-hover:text-white transition-all">${labels[idx]}</span>
+                        <span class="text-slate-200 flex-1">${opt}</span>
+                    </button>`;
+            });
+
+            document.getElementById('nextBtn').innerText = (currentIdx === examData.questions.length - 1) ? "Submit Exam Set" : "Next Question →";
+
+            countdownInterval = setInterval(() => {
+                timeRemaining--;
+                document.getElementById('timerClock').innerText = timeRemaining;
+                if (timeRemaining <= 0) { advanceQuestion(); }
+            }, 1000);
+        }
+
+        function selectOption(label, idx) {
+            selectedOptionIndex = label;
+            for (let i = 0; i < 4; i++) {
+                const el = document.getElementById(`optBtn_${i}`);
+                if (el) el.className = "w-full text-left p-4 rounded-xl border border-slate-700 bg-slate-800/40 hover:bg-slate-700/40 hover:border-slate-600 transition-all text-xs flex items-center space-x-3 group";
+            }
+            document.getElementById(`optBtn_${idx}`).className = "w-full text-left p-4 rounded-xl border border-indigo-500 bg-indigo-500/10 text-xs flex items-center space-x-3 group";
+        }
+
+        function advanceQuestion() {
+            const q = examData.questions[currentIdx];
+            if (selectedOptionIndex === q.correct) runningScore++;
+
+            if (currentIdx < examData.questions.length - 1) {
+                currentIdx++;
+                displayQuestionItem();
+            } else {
+                commitFinalMetrics();
+            }
+        }
+
+        async function commitFinalMetrics() {
+            clearInterval(countdownInterval);
+            const scorePayload = {
+                studentName: student.name,
+                examId: examData.id,
+                teacherName: student.teacher,
+                examTitle: examData.title,
+                score: runningScore,
+                maxScore: examData.questions.length,
+                violations: securityViolations
+            };
+
+            try {
+                await addDoc(collection(db, "portal_results"), scorePayload);
+                window.location.href = 'result-screen.html';
+            } catch (err) { alert("Error saving final metrics."); }
+        }
+
+        window.selectOption = selectOption;
+        window.advanceQuestion = advanceQuestion;
+        loadExamPayload();
+    </script>
+</body>
+</html>

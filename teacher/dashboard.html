@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Control Workspace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans antialiased">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 px-6 h-16 flex items-center justify-between">
+        <div>
+            <h1 class="text-lg font-black text-slate-900 tracking-tight" id="teacherTitle">Teacher Panel</h1>
+            <p class="text-xs text-slate-500">Cloud Control Environment</p>
+        </div>
+        
+        <div class="flex items-center space-x-3">
+            <a href="manage-config.html" class="bg-slate-100 border border-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-slate-200 transition-colors">Manage Config</a>
+            <a href="view-results.html" class="bg-indigo-50 border border-indigo-200 text-indigo-600 px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-indigo-100 transition-colors">View Scoreboard Live</a>
+            <button onclick="logout()" class="text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-xl transition-colors">Exit</button>
+        </div>
+    </header>
+    <main class="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 h-fit">
+            <div>
+                <h2 class="text-base font-bold text-slate-900">Enlist Student Profiles</h2>
+                <p class="text-xs text-slate-400">Profiles write instantly to the active cloud registry.</p>
+            </div>
+            <form onsubmit="registerStudent(event)" class="space-y-3">
+                <input type="text" id="sName" placeholder="Full Name" required class="w-full text-xs px-3 py-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="text" id="sPass" placeholder="Access Password Key" required class="w-full text-xs px-3 py-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500">
+                <div class="grid grid-cols-2 gap-2">
+                    <select id="sClass" class="text-xs px-2 py-2 rounded-lg border border-slate-200 outline-none">
+                        <option value="Class 9">Class 9</option>
+                        <option value="Class 10">Class 10</option>
+                    </select>
+                    <select id="sMedium" class="text-xs px-2 py-2 rounded-lg border border-slate-200 outline-none">
+                        <option value="English">English Medium</option>
+                        <option value="Bengali">Bengali Medium</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-slate-950 text-white font-bold text-xs py-2.5 rounded-lg hover:bg-slate-800 transition-colors">Save to Cloud Bank</button>
+            </form>
+        </div>
+
+        <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+            <div>
+                <h2 class="text-base font-bold text-slate-900">Design Mock Paper Set</h2>
+                <p class="text-xs text-slate-400">Deploy structural targets. Questions run under automated 60-second intervals.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <input type="text" id="examTitle" placeholder="Exam Set Title (e.g., Physical Science Mock 1)" class="md:col-span-1 text-xs px-3 py-2 rounded-lg border border-slate-200 outline-none">
+                <select id="examClass" class="text-xs px-2 py-2 rounded-lg border border-slate-200 outline-none">
+                    <option value="Class 9">Target Class 9</option>
+                    <option value="Class 10">Target Class 10</option>
+                </select>
+                <select id="examMedium" class="text-xs px-2 py-2 rounded-lg border border-slate-200 outline-none">
+                    <option value="English">English Medium</option>
+                    <option value="Bengali">Bengali Medium</option>
+                </select>
+            </div>
+
+            <div class="border border-slate-100 rounded-xl p-4 bg-slate-50/50 space-y-3">
+                <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-widest block">Active Item Staging Configuration</span>
+                <input type="text" id="qText" placeholder="Question String Objective" class="w-full text-xs px-3 py-2 rounded-lg border border-slate-200 outline-none">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="optA" placeholder="Option A" class="text-xs px-3 py-2 rounded-lg border border-slate-200 outline-none">
+                    <input type="text" id="optB" placeholder="Option B" class="text-xs px-3 py-2 rounded-lg border border-slate-200 outline-none">
+                    <input type="text" id="optC" placeholder="Option C" class="text-xs px-3 py-2 rounded-lg border border-slate-200 outline-none">
+                    <input type="text" id="optD" placeholder="Option D" class="text-xs px-3 py-2 rounded-lg border border-slate-200 outline-none">
+                </div>
+                <div class="flex items-center justify-between pt-2">
+                    <select id="qCorrect" class="text-xs px-3 py-1.5 rounded-lg border border-slate-200 outline-none bg-white">
+                        <option value="A">Correct: Option A</option>
+                        <option value="B">Correct: Option B</option>
+                        <option value="B">Correct: Option C</option>
+                        <option value="D">Correct: Option D</option>
+                    </select>
+                    <button onclick="pushQuestionToMemory()" class="bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors">+ Load Stack</button>
+                </div>
+            </div>
+
+            <div>
+                <span class="text-xs font-bold text-slate-700 block mb-2">Current Question Stack: <span id="queueCount" class="font-mono text-indigo-600">0</span> items loaded</span>
+                <button onclick="publishExamToCloud()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-md text-xs transition-all tracking-wider uppercase">Publish Examination Live to Selected Student Segments</button>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAMjISd6EQ574d8Qix4pXvVDriWurPpX-E",
+            authDomain: "school-exam-portal.firebaseapp.com",
+            projectId: "school-exam-portal",
+            storageBucket: "school-exam-portal.firebasestorage.app",
+            messagingSenderId: "240212257757",
+            appId: "1:240212257757:web:fdb7ff48d25b85a1dd2434",
+            measurementId: "G-7VBY7P1JPH"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const teacher = localStorage.getItem('activeTeacher');
+        if (!teacher) window.location.href = '../index.html';
+        document.getElementById('teacherTitle').innerText = `Workspace: ${teacher}`;
+
+        let currentQuestionStagingArray = [];
+
+        async function registerStudent(e) {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('sName').value.trim(),
+                password: document.getElementById('sPass').value,
+                class: document.getElementById('sClass').value,
+                medium: document.getElementById('sMedium').value,
+                teacher: teacher
+            };
+
+            try {
+                await addDoc(collection(db, "portal_students"), data);
+                alert(`Student Profile "${data.name}" linked successfully to Cloud Core.`);
+                e.target.reset();
+            } catch (err) { alert("Cloud Drop Failure."); }
+        }
+
+        function pushQuestionToMemory() {
+            const text = document.getElementById('qText').value.trim();
+            const a = document.getElementById('optA').value.trim();
+            const b = document.getElementById('optB').value.trim();
+            const c = document.getElementById('optC').value.trim();
+            const d = document.getElementById('optD').value.trim();
+            const correct = document.getElementById('qCorrect').value;
+
+            if (!text || !a || !b || !c || !d) { alert("Complete all option blocks."); return; }
+
+            currentQuestionStagingArray.push({ text, options: [a, b, c, d], correct });
+            document.getElementById('queueCount').innerText = currentQuestionStagingArray.length;
+
+            document.getElementById('qText').value = '';
+            document.getElementById('optA').value = '';
+            document.getElementById('optB').value = '';
+            document.getElementById('optC').value = '';
+            document.getElementById('optD').value = '';
+        }
+
+        async function publishExamToCloud() {
+            const title = document.getElementById('examTitle').value.trim();
+            if (!title || currentQuestionStagingArray.length === 0) { alert("Provide a title and stage at least 1 question item."); return; }
+
+            const examPayload = {
+                id: "exam_" + Date.now(),
+                title: title,
+                class: document.getElementById('examClass').value,
+                medium: document.getElementById('examMedium').value,
+                teacher: teacher,
+                questions: currentQuestionStagingArray
+            };
+
+            try {
+                await addDoc(collection(db, "portal_exams"), examPayload);
+                alert("Exam set pushed live securely!");
+                currentQuestionStagingArray = [];
+                document.getElementById('queueCount').innerText = "0";
+                document.getElementById('examTitle').value = '';
+            } catch (err) { alert("Cloud deployment fault."); }
+        }
+
+        function logout() { localStorage.removeItem('activeTeacher'); window.location.href = '../index.html'; }
+
+        window.registerStudent = registerStudent;
+        window.pushQuestionToMemory = pushQuestionToMemory;
+        window.publishExamToCloud = publishExamToCloud;
+        window.logout = logout;
+    </script>
+</body>
+</html>
